@@ -1,0 +1,81 @@
+# Karanvir Singh - 8pm - 9:15 pm section - CS240-33
+# Worked with Torendra Rasik from 6:30 - 7:45 Section
+# Due Date : 5/17/18 
+# Note: Program will run extremely slow if input exceeds 46.
+
+				.data			# data declaration statement 
+Input:			.asciiz "\nPlease enter a number that will output the corresponding Fibonacci Number: "
+Output: 		.asciiz "\nThe Fibonacci number equivalent is: "
+Exceeds46.Part1:.asciiz "\nInput is greater than 46; the program will take additonal time to get the Fibonacci Number."
+Exceeds46.Part2:.asciiz "\nProgram will finish. Good luck!"
+		.globl main 
+		.text 					# code section
+main:		
+		li $v0, 4 				# assembly call code to print string
+		la $a0, Input   		# load the address of the input section into $a0
+		syscall 				# print the input message
+			
+		li $v0, 5 				# assembly call code to print integer
+		syscall 				# read the value of the integer into $v0
+		
+								# If a number greater than 46 is entered, a branch will generate an overflow to stop this
+		bgt $v0, 46, above46 	# Branch or greater which compares 46 to the value in $v0
+		
+		move $a0, $v0 			# Assign the value of $v0 into $a0
+		jal fib 				# jump and link to fib procedure
+		move $s0, $v0 			# Assign the value of $v0 into $s0 
+		
+		li $v0, 4 				# assembly call code to print string
+		la $a0, Output 			# load the address of the output section into $a0
+		syscall 				# print the output message 
+		li $v0,1 				# assembly call code to Print Integer 
+		move $a0, $s0 			# move value of $s0 to be printed to $a0 
+		syscall 				# syscall to print integer
+		
+		b finished 				# Go to finished procedure after printing the result
+fib:
+		li $t0, 0 				# load immediate 0 into register $t0
+		beq $a0, $t0, special0 	# Branch on equal if there is a given input of 0
+		
+								# If $v0 is less than or equal to 2 which is the base case
+		li $t0,2 				# load immediate into register $t0 to check for the base case 
+		ble $a0, $t0, basiscase # check branch less than or equal for registers $a0 and $t0 to the basecase 
+		
+		addi $sp,$sp,-4 		# Pop back the stack by 4 bits to create space for the registers
+		sw $ra,0($sp) 			# store word, the stack now contains the address of the return register $ra
+		addi $a0,$a0,-1 		# add immediate, add negative one to $a0 and reduce the counter
+		jal fib 				# jump and link to fib 
+		addi $a0,$a0,1  		# add immediate, add 1 to $a0 and re-assign that value to $a0
+		lw $ra,0($sp) 			# load word, load the return address from the stack
+		addi $sp,$sp,4 			# add immediate, add 4 bits from the stack and restore the stack pointer
+		addi $sp,$sp,-4 		# Pop back the stack by 4 bits to create space for $v0
+		sw $v0,0,($sp)  		# store word, save the stack pointer in $v0
+		
+		addi $sp, $sp, -4 		# add immediate, add 4 bits from the stack and create additonal space for registers
+		sw $ra, 0($sp) 			# store the return address on the stack
+		addi $a0, $a0, -2 		# add immediate, to decrease the counter, add negative 2 to $a0 and reassign that value
+		jal fib 				# jump nad link to fib
+		addi $a0, $a0, 2 		# add immediate, add 2 to $a0 and reassign that value to $a0
+		lw $ra, 0($sp) 			# load word, load the return address and retrieve it from the stack
+		addi $sp, $sp, 4 		# add immediate, take out 4 bits to retore the stack pointer
+		lw $t0, 0($sp) 			# load word
+		
+		addi $sp,$sp, 4 		# add immediate, take out 4 bits to retore the stack pointer
+		add $v0,$v0,$t0 		# Add the temporary register and $v0, and reassign it to $v0 for a reutrn value ( Final answer for fib number)
+		
+		jr $ra 					# Return back to main and the answer back into $v0
+		
+basiscase:
+		li $v0, 1 				# load immediate, assembly call code to Print Integer 
+		jr $ra 					# Go back to fib and go to the jal instruction
+special0:
+		li $v0, 0 				# load immediate when 0 is entered into register $v0
+		jr $ra  				# Go back to main
+above46:
+		li $v0, 4 				# assembly call code to print string
+		la $a0, Exceeds46.Part1 # load the address of Exceeds46.1 section into $a0 
+		syscall 				# print the output message 
+		li $v0, 4				# assembly call code to print string
+		la $a0, Exceeds46.Part2 # load the address of Exceeds46.2 section into $a0 
+		syscall 				# print the output message 
+finished:			
